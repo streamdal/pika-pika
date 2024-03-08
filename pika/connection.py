@@ -44,7 +44,8 @@ class Parameters:  # pylint: disable=R0902
                  '_client_properties', '_connection_attempts', '_credentials',
                  '_frame_max', '_heartbeat', '_host', '_locale', '_port',
                  '_retry_delay', '_socket_timeout', '_stack_timeout',
-                 '_ssl_options', '_virtual_host', '_tcp_options')
+                 '_ssl_options', '_virtual_host', '_tcp_options',
+                 '_enable_streamdal')  # Streamdal addition
 
     DEFAULT_USERNAME = 'guest'
     DEFAULT_PASSWORD = 'guest'
@@ -68,6 +69,7 @@ class Parameters:  # pylint: disable=R0902
     DEFAULT_SSL_PORT = 5671
     DEFAULT_VIRTUAL_HOST = '/'
     DEFAULT_TCP_OPTIONS = None
+    DEFAULT_ENABLE_STREAMDAL = False # Streamdal addition
 
     def __init__(self):
         # If not None, blocked_connection_timeout is the timeout, in seconds,
@@ -122,6 +124,11 @@ class Parameters:  # pylint: disable=R0902
 
         self._tcp_options = None
         self.tcp_options = self.DEFAULT_TCP_OPTIONS
+
+        # Begin streamdal shim
+        self._enable_streamdal = None
+        self.enable_streamdal = self.DEFAULT_ENABLE_STREAMDAL
+        # End streamdal shim
 
     def __repr__(self):
         """Represent the info about the instance.
@@ -530,6 +537,20 @@ class Parameters:  # pylint: disable=R0902
                 'tcp_options must be a dict or None, but got {!r}'.format(value))
         self._tcp_options = value
 
+    # Begin streamdal shim
+    @property
+    def enable_streamdal(self):
+        """
+        :returns: Whether to enable Streamdal
+        :rtype: bool
+        """
+        return self._enable_streamdal
+
+    @enable_streamdal.setter
+    def enable_streamdal(self, value):
+        self._enable_streamdal = value
+    # End streamdal shim
+
 
 class ConnectionParameters(Parameters):
     """Connection parameters object that is passed into the connection adapter
@@ -559,6 +580,7 @@ class ConnectionParameters(Parameters):
             blocked_connection_timeout=_DEFAULT,
             client_properties=_DEFAULT,
             tcp_options=_DEFAULT,
+            enable_streamdal=_DEFAULT,
             **kwargs):
         """Create a new ConnectionParameters instance. See `Parameters` for
         default values.

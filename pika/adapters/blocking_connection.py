@@ -23,6 +23,8 @@ import functools
 import logging
 import threading
 
+import streamdal
+
 import pika.compat as compat
 import pika.exceptions as exceptions
 import pika.spec
@@ -32,6 +34,7 @@ from pika.adapters.utils import connection_workflow
 # NOTE: import SelectConnection after others to avoid circular depenency
 from pika.adapters import select_connection
 from pika.exchange_type import ExchangeType
+from pika.streamdal import streamdal_process, StreamdalRuntimeConfig
 
 LOGGER = logging.getLogger(__name__)
 
@@ -1900,7 +1903,8 @@ class BlockingChannel:
                 auto_ack=False,
                 exclusive=False,
                 arguments=None,
-                inactivity_timeout=None):
+                inactivity_timeout=None,
+                *cfg: StreamdalRuntimeConfig):
         """Blocking consumption of a queue instead of via a callback. This
         method is a generator that yields each message as a tuple of method,
         properties, and body. The active generator iterator terminates when the
@@ -1943,6 +1947,7 @@ class BlockingChannel:
 
         """
         self._impl._raise_if_not_open()
+
 
         params = (queue, auto_ack, exclusive)
 
@@ -1988,6 +1993,10 @@ class BlockingChannel:
                     self._queue_consumer_generator = None
                     break
                 else:
+                    # Begin Streamdal Shim
+                    evt.body = streamdal_process(self._streamdal, streamdal.OPERATION_TYPE_CONSUMER, queue, "", evt.body, *cfg)
+                    # End Streamdal Shim
+
                     yield (evt.method, evt.properties, evt.body)
                     continue
 

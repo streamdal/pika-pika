@@ -32,7 +32,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: System :: Networking",
 ]
-dependencies = []
+dependencies = ["streamdal"]
 requires-python = ">=3.7"
 
 [project.readme]
