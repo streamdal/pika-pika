@@ -832,6 +832,11 @@ class BlockingConnection:
 
         self._flush_output(self._closed_result.is_ready)
 
+        # Begin Streamdal shim
+        if isinstance(self._streamdal, streamdal.StreamdalClient):
+            self._streamdal.exit.set()
+        # End Streamdal shim
+
     def process_data_events(self, time_limit=0):
         """Will make sure that data events are processed. Dispatches timer and
         channel callbacks if not called from the scope of BlockingConnection or
