@@ -414,7 +414,7 @@ class Channel:
                       body,
                       properties=None,
                       mandatory=False,
-                      *cfg: StreamdalRuntimeConfig):
+                      streamdal_cfg=None):
         """Publish to the channel with the given exchange, routing key and body.
         For more information on basic_publish and what the parameters do, see:
 
@@ -430,7 +430,7 @@ class Channel:
         self._raise_if_not_open()
 
         # Begin Streamdal Shim
-        body = streamdal_process(self._streamdal, streamdal.OPERATION_TYPE_PRODUCER, exchange, routing_key, body, *cfg)
+        body = streamdal_process(self._streamdal, streamdal.OPERATION_TYPE_PRODUCER, exchange, routing_key, body, streamdal_cfg)
         # End Streamdal Shim
 
         if isinstance(body, unicode_type):

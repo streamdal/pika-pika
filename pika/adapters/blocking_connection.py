@@ -24,6 +24,7 @@ import logging
 import threading
 
 import streamdal
+import pika.streamdal as streamdal_shim
 
 import pika.compat as compat
 import pika.exceptions as exceptions
@@ -322,6 +323,8 @@ class BlockingConnection:
     _OnChannelOpenedArgs = namedtuple('BlockingConnection__OnChannelOpenedArgs',
                                       'channel')
 
+    _streamdal: streamdal.StreamdalClient = None  # Streamdal addition
+
     def __init__(self, parameters=None, _impl_class=None):
         """Create a new instance of the Connection object.
 
@@ -357,6 +360,14 @@ class BlockingConnection:
 
         # Receives on_close_callback args from Connection
         self._closed_result = _CallbackResult(self._OnClosedArgs)
+
+        # Begin Streamdal shim
+        if parameters.enable_streamdal:
+            self._streamdal = streamdal_shim.streamdal_setup()
+            LOGGER.debug("Streamdal is enabled")
+        else:
+            LOGGER.debug("Streamdal is not enabled")
+        # End Streamdal shim
 
         # Perform connection workflow
         self._impl = None  # so that attribute is created in case below raises
@@ -887,7 +898,7 @@ class BlockingConnection:
                 on_open_callback=opened_args.set_value_once)
 
             # Create our proxy channel
-            channel = BlockingChannel(impl_channel, self)
+            channel = BlockingChannel(impl_channel, self, self._streamdal)
 
             # Link implementation channel with our proxy channel
             impl_channel._set_cookie(channel)
@@ -1204,7 +1215,7 @@ class BlockingChannel:
 
     _CONSUMER_CANCELLED_CB_KEY = 'blocking_channel_consumer_cancelled'
 
-    def __init__(self, channel_impl, connection):
+    def __init__(self, channel_impl, connection, streamdal_client):
         """Create a new instance of the Channel
 
         :param pika.channel.Channel channel_impl: Channel implementation object
@@ -1214,6 +1225,7 @@ class BlockingChannel:
         """
         self._impl = channel_impl
         self._connection = connection
+        self._streamdal = streamdal_client
 
         # A mapping of consumer tags to _ConsumerInfo for active consumers
         self._consumer_infos = dict()
@@ -1904,7 +1916,7 @@ class BlockingChannel:
                 exclusive=False,
                 arguments=None,
                 inactivity_timeout=None,
-                *cfg: StreamdalRuntimeConfig):
+                streamdal_cfg=None):
         """Blocking consumption of a queue instead of via a callback. This
         method is a generator that yields each message as a tuple of method,
         properties, and body. The active generator iterator terminates when the
@@ -1994,7 +2006,7 @@ class BlockingChannel:
                     break
                 else:
                     # Begin Streamdal Shim
-                    evt.body = streamdal_process(self._streamdal, streamdal.OPERATION_TYPE_CONSUMER, queue, "", evt.body, *cfg)
+                    evt.body = streamdal_process(self._streamdal, streamdal.OPERATION_TYPE_CONSUMER, queue, "", evt.body, streamdal_cfg)
                     # End Streamdal Shim
 
                     yield (evt.method, evt.properties, evt.body)
@@ -2197,7 +2209,8 @@ class BlockingChannel:
                       routing_key,
                       body,
                       properties=None,
-                      mandatory=False):
+                      mandatory=False,
+                      streamdal_cfg=None):
         """Publish to the channel with the given exchange, routing key, and
         body.
 
@@ -2270,7 +2283,8 @@ class BlockingChannel:
                 routing_key=routing_key,
                 body=body,
                 properties=properties,
-                mandatory=mandatory)
+                mandatory=mandatory,
+                streamdal_cfg=streamdal_cfg)
             self._flush_output()
 
     def basic_qos(self, prefetch_size=0, prefetch_count=0, global_qos=False):

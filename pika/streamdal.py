@@ -19,18 +19,18 @@ class StreamdalRuntimeConfig:
     strict_errors: bool = False
 
 def streamdal_setup():
-    address = os.getenv(STREAMDAL_ENV_ADDRESS)
+    print("STREAMDAL SETUP CALLED")
+    address = os.getenv("STREAMDAL_ADDRESS")
     if address is None:
-        raise ValueError(f"Missing required environment variable {STREAMDAL_ENV_ADDRESS}")
+        raise ValueError(f"Missing required environment variable STREAMDAL_ADDRESS")
 
-    auth_token = os.getenv(STREAMDAL_ENV_AUTH_TOKEN)
+    auth_token = os.getenv("STREAMDAL_TOKEN")
     if auth_token is None:
-        raise ValueError(f"Missing required environment variable {STREAMDAL_ENV_AUTH_TOKEN}")
+        raise ValueError(f"Missing required environment variable STREAMDAL_TOKEN")
 
-    service_name = os.getenv(STREAMDAL_ENV_SERVICE_NAME)
+    service_name = os.getenv("STREAMDAL_SERVICE_NAME")
     if service_name is None:
-        raise ValueError(f"Missing required environment variable {STREAMDAL_ENV_SERVICE_NAME}")
-
+        service_name = "pika"
 
     return StreamdalClient(
         StreamdalConfig(
@@ -40,8 +40,11 @@ def streamdal_setup():
         )
     )
 
-def streamdal_process(streamdal_client: StreamdalClient, operation_type: int, exchange_name: str, routing_key: str, msg: bytes, *cfg: StreamdalRuntimeConfig) -> bytes:
-    aud = streamdal_generate_audience(operation_type, exchange_name, routing_key, *cfg)
+def streamdal_process(streamdal_client: StreamdalClient, operation_type: int, exchange_name: str, routing_key: str, msg: bytes, cfg: StreamdalRuntimeConfig) -> bytes:
+    if streamdal_client is None:
+        return msg
+
+    aud = streamdal_generate_audience(operation_type, exchange_name, routing_key, cfg)
 
     resp = streamdal_client.process(
         ProcessRequest(
@@ -67,7 +70,7 @@ def streamdal_process(streamdal_client: StreamdalClient, operation_type: int, ex
     return resp.data
 
 
-def streamdal_generate_audience(operation_type: int, exchange_name: str, routing_key: str, *cfg: StreamdalRuntimeConfig) -> Audience:
+def streamdal_generate_audience(operation_type: int, exchange_name: str, routing_key: str, cfg: StreamdalRuntimeConfig) -> Audience:
     component_name = STREAMDAL_DEFAULT_COMPONENT_NAME
     operation_name = STREAMDAL_DEFAULT_OPERATION_NAME
 
@@ -75,11 +78,11 @@ def streamdal_generate_audience(operation_type: int, exchange_name: str, routing
         operation_name = exchange_name
 
     if routing_key != "":
-        operation_name = f"{operation_name}.{routing_key}"
+        operation_name = f"{operation_name}_{routing_key}"
 
-    if len(cfg) > 0:
-        component_name = cfg[0].audience.component_name
-        operation_name = cfg[0].audience.operation_name
+    if cfg is not None:
+        component_name = cfg.audience.component_name
+        operation_name = cfg.audience.operation_name
 
 
     return Audience(

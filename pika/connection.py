@@ -674,6 +674,11 @@ class ConnectionParameters(Parameters):
         if tcp_options is not self._DEFAULT:
             self.tcp_options = tcp_options
 
+        # Begin Streamdal shim
+        if enable_streamdal is not self._DEFAULT:
+            self.enable_streamdal = enable_streamdal
+        # End Streamdal shim
+
         if kwargs:
             raise TypeError('unexpected kwargs: {!r}'.format(kwargs))
 
