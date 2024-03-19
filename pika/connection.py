@@ -1604,7 +1604,7 @@ class Connection(pika.compat.AbstractBase):
 
         """
         LOGGER.debug('Creating channel %s', channel_number)
-        return pika.channel.Channel(self, channel_number, on_open_callback)
+        return pika.channel.Channel(self, channel_number, on_open_callback, self.params._enable_streamdal)
 
     def _create_heartbeat_checker(self):
         """Create a heartbeat checker instance if there is a heartbeat interval

@@ -1960,7 +1960,6 @@ class BlockingChannel:
         """
         self._impl._raise_if_not_open()
 
-
         params = (queue, auto_ack, exclusive)
 
         if self._queue_consumer_generator is not None:

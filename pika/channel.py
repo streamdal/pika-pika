@@ -16,7 +16,7 @@ import pika.spec as spec
 import pika.validators as validators
 from pika.compat import unicode_type, dictkeys, is_integer
 from pika.exchange_type import ExchangeType
-from pika.streamdal import streamdal_setup, streamdal_process, StreamdalRuntimeConfig
+from pika.streamdal import streamdal_setup, streamdal_process
 import streamdal
 
 LOGGER = logging.getLogger(__name__)
@@ -49,7 +49,9 @@ class Channel:
 
     _ON_CHANNEL_CLEANUP_CB_KEY = '_on_channel_cleanup'
 
-    def __init__(self, connection, channel_number, on_open_callback):
+    _streamdal: streamdal.StreamdalClient = None
+
+    def __init__(self, connection, channel_number, on_open_callback, enable_streamdal=False):
         """Create a new instance of the Channel
 
         :param pika.connection.Connection connection: The connection
@@ -96,7 +98,8 @@ class Channel:
         self._cookie = None
 
         # Setup Streamdal SDK
-        self._streamdal = streamdal_setup()
+        if enable_streamdal:
+            self._streamdal = streamdal_setup()
 
 
     def __int__(self):
