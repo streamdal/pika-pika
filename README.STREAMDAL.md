@@ -105,4 +105,6 @@ The goal of any shim is to make minimally invasive changes so that the original
 library remains backwards-compatible and does not present any "surprises" at
 runtime.
 
-TODO
+1. `consume()` now accepts an optional `streamdal_cfg` parameter
+2. `basic_publish()` now accepts an optional `streamdal_cfg` parameter
+3. `ConnectionParameters` now accepts an optional `enable_streamdal` boolean parameter
