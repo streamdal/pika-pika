@@ -40,7 +40,7 @@ content-type = "text/x-rst"
 
 [project.urls]
 Homepage = "https://pika.readthedocs.io"
-Source = "https://github.com/pika/pika"
+Source = "https://github.com/streamdal/pika-pika"
 
 [project.optional-dependencies]
 gevent = ["gevent"]
