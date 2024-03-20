@@ -4,6 +4,11 @@ Pika is a RabbitMQ (AMQP 0-9-1) client library for Python.
 
 |Version| |Python versions| |Actions Status| |Coverage| |License| |Docs|
 
+> [!IMPORTANT]
+> This library is instrumented with [Streamdal's Go SDK](https://github.com/streamdal/streamdal/tree/main/sdks/go).
+>
+> Refer to [README.STREAMDAL.md](README.STREAMDAL.md) for more information.
+
 Introduction
 ------------
 Pika is a pure-Python implementation of the AMQP 0-9-1 protocol including
