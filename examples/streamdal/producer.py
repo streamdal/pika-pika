@@ -18,8 +18,11 @@ def main():
     connection = pika.BlockingConnection(pika.ConnectionParameters(enable_streamdal=True))
     channel = connection.channel()
 
-    # Declare exchange if it does not exist
-    channel.exchange_declare(exchange='events', exchange_type='topic')
+    try:
+        # Declare exchange if it does not exist
+        channel.exchange_declare(exchange='events', exchange_type='topic')
+    except Exception:
+        pass
 
     # Clean shutdown
     def sigterm_handler(signum, frame):

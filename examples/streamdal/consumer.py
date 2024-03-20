@@ -13,27 +13,22 @@ cfg_consume = StreamdalRuntimeConfig(
     )
 )
 
-# Producer Audience
-cfg_produce = StreamdalRuntimeConfig(
-    audience=Audience(
-        component_name="rabbitmq",
-        operation_name="produce_msg",
-        operation_type=OPERATION_TYPE_PRODUCER
-    )
-)
 
 def main():
     connection = pika.BlockingConnection(pika.ConnectionParameters(enable_streamdal=True))
     channel = connection.channel()
 
     # Declare exchange if it does not exist
-    channel.exchange_declare(exchange='events', exchange_type='topic')
+    try:
+        channel.exchange_declare(exchange='events', exchange_type='topic')
 
-    # Declare queue if it does not exist
-    channel.queue_declare(queue='streamdal')
+        # Declare queue if it does not exist
+        channel.queue_declare(queue='streamdal')
 
-    # Bind queue to exchange
-    channel.queue_bind(exchange='events', queue='streamdal', routing_key='orders.new')
+        # Bind queue to exchange
+        channel.queue_bind(exchange='events', queue='streamdal', routing_key='orders.new')
+    except Exception:
+        pass
 
     # Clean shutdown
     def sigterm_handler(signum, frame):
