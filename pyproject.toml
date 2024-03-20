@@ -52,7 +52,7 @@ twisted = ["twisted"]
 [tool.setuptools]
 zip-safe = true
 include-package-data = false
-packages = ["pika", "pika.adapters", "pika.adapters.utils"]
+packages = ["pika_streamdal", "pika", "pika.adapters", "pika.adapters.utils"]
 package-dir = {"pika_streamdal"= "pika", "pika_streamdal.adapters"= "pika/adapters", "pika_streamdal.adapters.utils"= "pika/adapters/utils"}
 
 [tool.setuptools.package-data]
