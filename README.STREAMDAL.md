@@ -25,7 +25,7 @@ pika.ConnectionParameters(enable_streamdal=True)
 
 ## Example
 
-A fully working example is provided in [examples/streamdal/app.py](examples/streamdal/consumer.py).
+A fully working example is provided in [examples/streamdal](examples/streamdal/).
 
 To run the example:
 
