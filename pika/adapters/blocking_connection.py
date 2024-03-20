@@ -22,7 +22,6 @@ import contextlib
 import functools
 import logging
 import threading
-
 import pika.compat as compat
 import pika.exceptions as exceptions
 import pika.spec
@@ -32,6 +31,10 @@ from pika.adapters.utils import connection_workflow
 # NOTE: import SelectConnection after others to avoid circular depenency
 from pika.adapters import select_connection
 from pika.exchange_type import ExchangeType
+
+import streamdal
+import pika.streamdal as streamdal_shim
+from pika.streamdal import streamdal_process
 
 LOGGER = logging.getLogger(__name__)
 
@@ -319,6 +322,8 @@ class BlockingConnection:
     _OnChannelOpenedArgs = namedtuple('BlockingConnection__OnChannelOpenedArgs',
                                       'channel')
 
+    _streamdal: streamdal.StreamdalClient = None  # Streamdal addition
+
     def __init__(self, parameters=None, _impl_class=None):
         """Create a new instance of the Connection object.
 
@@ -354,6 +359,14 @@ class BlockingConnection:
 
         # Receives on_close_callback args from Connection
         self._closed_result = _CallbackResult(self._OnClosedArgs)
+
+        # Begin Streamdal shim
+        if parameters.enable_streamdal:
+            self._streamdal = streamdal_shim.streamdal_setup()
+            LOGGER.debug("Streamdal is enabled")
+        else:
+            LOGGER.debug("Streamdal is not enabled")
+        # End Streamdal shim
 
         # Perform connection workflow
         self._impl = None  # so that attribute is created in case below raises
@@ -818,6 +831,11 @@ class BlockingConnection:
 
         self._flush_output(self._closed_result.is_ready)
 
+        # Begin Streamdal shim
+        if isinstance(self._streamdal, streamdal.StreamdalClient):
+            self._streamdal.exit.set()
+        # End Streamdal shim
+
     def process_data_events(self, time_limit=0):
         """Will make sure that data events are processed. Dispatches timer and
         channel callbacks if not called from the scope of BlockingConnection or
@@ -884,7 +902,7 @@ class BlockingConnection:
                 on_open_callback=opened_args.set_value_once)
 
             # Create our proxy channel
-            channel = BlockingChannel(impl_channel, self)
+            channel = BlockingChannel(impl_channel, self, self._streamdal)
 
             # Link implementation channel with our proxy channel
             impl_channel._set_cookie(channel)
@@ -1201,7 +1219,7 @@ class BlockingChannel:
 
     _CONSUMER_CANCELLED_CB_KEY = 'blocking_channel_consumer_cancelled'
 
-    def __init__(self, channel_impl, connection):
+    def __init__(self, channel_impl, connection, streamdal_client):
         """Create a new instance of the Channel
 
         :param pika.channel.Channel channel_impl: Channel implementation object
@@ -1211,6 +1229,7 @@ class BlockingChannel:
         """
         self._impl = channel_impl
         self._connection = connection
+        self._streamdal = streamdal_client
 
         # A mapping of consumer tags to _ConsumerInfo for active consumers
         self._consumer_infos = dict()
@@ -1900,7 +1919,8 @@ class BlockingChannel:
                 auto_ack=False,
                 exclusive=False,
                 arguments=None,
-                inactivity_timeout=None):
+                inactivity_timeout=None,
+                streamdal_cfg=None):
         """Blocking consumption of a queue instead of via a callback. This
         method is a generator that yields each message as a tuple of method,
         properties, and body. The active generator iterator terminates when the
@@ -1988,6 +2008,10 @@ class BlockingChannel:
                     self._queue_consumer_generator = None
                     break
                 else:
+                    # Begin Streamdal Shim
+                    evt.body = streamdal_process(self._streamdal, streamdal.OPERATION_TYPE_CONSUMER, queue, "", evt.body, streamdal_cfg)
+                    # End Streamdal Shim
+
                     yield (evt.method, evt.properties, evt.body)
                     continue
 
@@ -2188,7 +2212,8 @@ class BlockingChannel:
                       routing_key,
                       body,
                       properties=None,
-                      mandatory=False):
+                      mandatory=False,
+                      streamdal_cfg=None):
         """Publish to the channel with the given exchange, routing key, and
         body.
 
@@ -2261,7 +2286,8 @@ class BlockingChannel:
                 routing_key=routing_key,
                 body=body,
                 properties=properties,
-                mandatory=mandatory)
+                mandatory=mandatory,
+                streamdal_cfg=streamdal_cfg)
             self._flush_output()
 
     def basic_qos(self, prefetch_size=0, prefetch_count=0, global_qos=False):

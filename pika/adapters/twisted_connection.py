@@ -21,6 +21,7 @@ from pika import exceptions, spec
 from pika.adapters.utils import nbio_interface
 from pika.adapters.utils.io_services_utils import check_callback_arg
 from pika.exchange_type import ExchangeType
+from pika.streamdal import StreamdalRuntimeConfig
 
 # Twistisms
 # pylint: disable=C0111,C0103
@@ -535,7 +536,8 @@ class TwistedChannel:
                       routing_key,
                       body,
                       properties=None,
-                      mandatory=False):
+                      mandatory=False,
+                      streamdal_cfg=None):
         """Publish to the channel with the given exchange, routing key and body.
 
         This method wraps :meth:`Channel.basic_publish

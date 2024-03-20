@@ -21,3 +21,6 @@ env/
 testdata/*.conf
 # pyright type information
 typings/
+.venv
+examples/streamdal/tmp/*
+!examples/streamdal/tmp/.gitkeep

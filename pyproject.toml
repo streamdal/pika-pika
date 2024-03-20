@@ -3,14 +3,14 @@ requires = ["setuptools>=61.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pika"
+name = "pika_streamdal"
 version = "2.0.0a0"
 maintainers = [
     {name = "Gavin M. Roy", email = "gavinmroy@gmail.com"},
     {name = "Luke Bakken", email = "lukerbakken@gmail.com"}
 ]
 license = {text = "BSD-3-Clause"}
-description = "Pika Python AMQP Client Library"
+description = "Pika Python AMQP Client Library - Instrumented with Streamdal"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
@@ -18,7 +18,6 @@ classifiers = [
     "Natural Language :: English",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
@@ -32,8 +31,8 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: System :: Networking",
 ]
-dependencies = []
-requires-python = ">=3.7"
+dependencies = ["streamdal"]
+requires-python = ">=3.8"
 
 [project.readme]
 file = "README.rst"
@@ -41,7 +40,7 @@ content-type = "text/x-rst"
 
 [project.urls]
 Homepage = "https://pika.readthedocs.io"
-Source = "https://github.com/pika/pika"
+Source = "https://github.com/streamdal/pika-pika"
 
 [project.optional-dependencies]
 gevent = ["gevent"]
@@ -53,7 +52,7 @@ twisted = ["twisted"]
 [tool.setuptools]
 zip-safe = true
 include-package-data = false
-packages = ["pika", "pika.adapters", "pika.adapters.utils"]
+packages = ["pika", "pika.adapters", "pika.adapters.utils", "pika.streamdal"]
 
 [tool.setuptools.package-data]
 "*" = ["LICENSE", "README.rst"]

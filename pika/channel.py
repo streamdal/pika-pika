@@ -16,6 +16,8 @@ import pika.spec as spec
 import pika.validators as validators
 from pika.compat import unicode_type, dictkeys, is_integer
 from pika.exchange_type import ExchangeType
+from pika.streamdal import streamdal_setup, streamdal_process
+import streamdal
 
 LOGGER = logging.getLogger(__name__)
 
@@ -47,7 +49,9 @@ class Channel:
 
     _ON_CHANNEL_CLEANUP_CB_KEY = '_on_channel_cleanup'
 
-    def __init__(self, connection, channel_number, on_open_callback):
+    _streamdal: streamdal.StreamdalClient = None
+
+    def __init__(self, connection, channel_number, on_open_callback, enable_streamdal=False):
         """Create a new instance of the Channel
 
         :param pika.connection.Connection connection: The connection
@@ -92,6 +96,11 @@ class Channel:
         # opaque cookie value set by wrapper layer (e.g., BlockingConnection)
         # via _set_cookie
         self._cookie = None
+
+        # Setup Streamdal SDK
+        if enable_streamdal:
+            self._streamdal = streamdal_setup()
+
 
     def __int__(self):
         """Return the channel object as its channel number
@@ -407,7 +416,8 @@ class Channel:
                       routing_key,
                       body,
                       properties=None,
-                      mandatory=False):
+                      mandatory=False,
+                      streamdal_cfg=None):
         """Publish to the channel with the given exchange, routing key and body.
         For more information on basic_publish and what the parameters do, see:
 
@@ -421,6 +431,11 @@ class Channel:
 
         """
         self._raise_if_not_open()
+
+        # Begin Streamdal Shim
+        body = streamdal_process(self._streamdal, streamdal.OPERATION_TYPE_PRODUCER, exchange, routing_key, body, streamdal_cfg)
+        # End Streamdal Shim
+
         if isinstance(body, unicode_type):
             body = body.encode('utf-8')
         properties = properties or spec.BasicProperties()
