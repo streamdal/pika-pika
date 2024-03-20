@@ -28,6 +28,9 @@ from pika.compat import (
     dict_itervalues,
     dict_iteritems)
 
+import streamdal
+import pika.streamdal as streamdal_shim
+
 PRODUCT = "Pika Python Client Library"
 
 LOGGER = logging.getLogger(__name__)
@@ -1016,6 +1019,8 @@ class Connection(pika.compat.AbstractBase):
         CONNECTION_CLOSING: 'CLOSING'
     }
 
+    _streamdal: streamdal.StreamdalClient = None  # Streamdal addition
+
     def __init__(self,
                  parameters=None,
                  on_open_callback=None,
@@ -1117,6 +1122,14 @@ class Connection(pika.compat.AbstractBase):
             # Externally-managed connection workflow will proceed asynchronously
             # using adapter-specific mechanism
             LOGGER.debug('Using external connection workflow.')
+
+        # Begin Streamdal shim
+        if parameters.enable_streamdal:
+            self._streamdal = streamdal_shim.streamdal_setup()
+            LOGGER.debug("Streamdal is enabled")
+        else:
+            LOGGER.debug("Streamdal is not enabled")
+        # End Streamdal shim
 
     def _init_connection_state(self):
         """Initialize or reset all of the internal state variables for a given

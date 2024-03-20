@@ -34,7 +34,7 @@ from pika.exchange_type import ExchangeType
 
 import streamdal
 import pika.streamdal as streamdal_shim
-from pika.streamdal import streamdal_process, StreamdalRuntimeConfig
+from pika.streamdal import streamdal_process
 
 LOGGER = logging.getLogger(__name__)
 

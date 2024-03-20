@@ -14,10 +14,6 @@ import pika.tcp_socket_opts
 from pika.adapters.utils import connection_workflow, nbio_interface
 from pika import connection
 
-import streamdal
-import pika.streamdal as streamdal_shim
-from pika.streamdal import streamdal_process, StreamdalRuntimeConfig
-
 LOGGER = logging.getLogger(__name__)
 
 
@@ -27,7 +23,6 @@ class BaseConnection(connection.Connection):
     This class abstracts I/O loop and transport services from pika core.
 
     """
-    _streamdal: streamdal.StreamdalClient = None  # Streamdal addition
 
     def __init__(self, parameters, on_open_callback, on_open_error_callback,
                  on_close_callback, nbio, internal_connection_workflow):
