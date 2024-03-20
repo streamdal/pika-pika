@@ -10,7 +10,7 @@ maintainers = [
     {name = "Luke Bakken", email = "lukerbakken@gmail.com"}
 ]
 license = {text = "BSD-3-Clause"}
-description = "Pika Python AMQP Client Library"
+description = "Pika Python AMQP Client Library - Instrumented with Streamdal"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
