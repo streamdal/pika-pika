@@ -22,10 +22,6 @@ import contextlib
 import functools
 import logging
 import threading
-
-import streamdal
-import pika.streamdal as streamdal_shim
-
 import pika.compat as compat
 import pika.exceptions as exceptions
 import pika.spec
@@ -35,6 +31,9 @@ from pika.adapters.utils import connection_workflow
 # NOTE: import SelectConnection after others to avoid circular depenency
 from pika.adapters import select_connection
 from pika.exchange_type import ExchangeType
+
+import streamdal
+import pika.streamdal as streamdal_shim
 from pika.streamdal import streamdal_process, StreamdalRuntimeConfig
 
 LOGGER = logging.getLogger(__name__)
