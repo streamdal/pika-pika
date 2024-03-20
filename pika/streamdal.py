@@ -88,6 +88,7 @@ def streamdal_generate_audience(operation_type: int, exchange_name: str, routing
         operation_name = exchange_name
 
     if routing_key != "":
+        routing_key = routing_key.replace(".", "_")
         operation_name = f"{operation_name}_{routing_key}"
 
     if cfg is not None:
