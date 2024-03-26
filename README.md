@@ -271,7 +271,7 @@ New non-blocking adapters may be implemented in either of the following ways:
 .. |Version| image:: https://img.shields.io/pypi/v/pika.svg?
    :target: http://badge.fury.io/py/pika
 
-.. |Python versions| image:: https://img.shields.io/pypi/pyversions/pika.svg
+.. |Python versions| image:: https://img.shields.io/pypi/pyversions/pika-streamdal.svg
     :target: https://pypi.python.org/pypi/pika_streamdal
 
 .. |Actions Status| image:: https://github.com/pika/pika/actions/workflows/main.yaml/badge.svg
